@@ -441,7 +441,6 @@ private:
         path_set = true;
 
         /*
-
         nav_msgs::OccupancyGrid* newGrid = map.Grid();
         newGrid->header = header;
         newGrid->info = info;

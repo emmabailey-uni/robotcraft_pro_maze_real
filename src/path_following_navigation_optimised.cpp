@@ -33,6 +33,47 @@
 class PathFollowingController
 {
 private:
+
+    //Making sort functions
+    void new_sort(std::vector<std::tuple<int,int, int>> path_finder, std::vector<std::tuple<int,int,int>> list_neighbours){
+        std::vector<std::tuple<int,int, int>> check;
+        int i, j=0, k;
+
+        for(i=0; i<4; i++){
+          if (max_element(get<2>(path_finder.begin()), get<2>(path_finder.end())) == (get<2>(list_neighbours[i]))+1){
+            check[j] = (list_neighbours[i]);
+            j++;
+          }
+        }
+
+        int x_co, y_co;
+        x_co = get<0>(path_finder.back());
+        y_co = get<0>(path_finder.back());
+
+        for (k=0; k<j; k++){
+          if(x_co == get<0>(check[k]) && y_co == get<0>(check[k])-1 ){
+
+          }
+        }
+
+
+    }
+    /*
+    listNeighbours.sort([&](const std::tuple<int, int, int> &n1, const std::tuple<int, int, int> &n2)
+    {
+        return std::get<2>(n1) < std::get<2>(n2); // Compare distances
+    });
+
+    if (listNeighbours.empty()) // Neighbour is invalid or no possible path
+        no_path = true;
+    else
+    {
+        locX = std::get<0>(listNeighbours.front());
+        locY = std::get<1>(listNeighbours.front());
+        path.push_back({ locX, locY });
+    }
+    */
+
     ros::NodeHandle n;
 
     //Publisher topics
@@ -84,10 +125,10 @@ private:
 
     //Combines two values in a list - inextricably tied to each other in each list position, variable name is final_path
     //Final optimal path
-     std::list<std::pair<int,int>> final_path;
+     std::vector<std::tuple<int,int, int>> final_path;
 
      //Path we're currently running on to determine optimal
-     std::pair<int,int> my_p;
+     std::tuple<int,int> my_p;
 
 
     bool init_flag = false;
@@ -128,8 +169,8 @@ private:
                 //This part determines the instructions to send to driver
                 my_p = final_path.front();
                 final_path.pop_front();
-                x_goal = Width*cell_size-(Width-(my_p.second))*cell_size+cell_size/2;
-                y_goal = Height*cell_size-(my_p.first)*cell_size-cell_size/2;
+                x_goal = Width*cell_size-(Width-(get<1>(my_p)))*cell_size+cell_size/2;
+                y_goal = Height*cell_size-(get<0>(my_p))*cell_size-cell_size/2;
             }
             done_flag = false;
         }
@@ -251,14 +292,14 @@ private:
 
 
         //New paired listing of three values for x, y and distance
-        std::list<std::tuple<int,int,int>> nodes;
+        std::vector<std::tuple<int,int,int>> nodes;
 
         //Exit of the map pushed to the list first
         nodes.push_back({endX,endY,1});
 
         while(!nodes.empty()){
             //New paired listing of three values for x, y and distance
-            std::list<std::tuple<int,int,int>> new_nodes;
+            std::vector<std::tuple<int,int,int>> new_nodes;
 
             for(auto &n : nodes){
                 //This is the method to access the variable held in our tuple list
@@ -347,15 +388,16 @@ private:
 
         //Algorithm to move through the cost map - choosing optimal path
         //Pushing new x-y coord each time you move
-        std::list<std::pair<int,int>> path;
-        path.push_back({startX,startY});
+        std::vector<std::tuple<int,int, int>> path;
+        path.push_back({startX,startY, startd});
         //locx anf locy keep track of current location
         int locX = startX;
         int locY = startY;
+        int locD = startD;
         bool no_path = false;
 
         while(!(locX == endX && locY == endY) && !no_path){
-            std::list<std::tuple<int,int,int>> listNeighbours;
+            std::vector<std::tuple<int,int,int>> listNeighbours;
 
             //This is the bit we want to optimise - we think
             // Check south
@@ -404,7 +446,8 @@ private:
             {
                 locX = std::get<0>(listNeighbours.front());
                 locY = std::get<1>(listNeighbours.front());
-                path.push_back({ locX, locY });
+                locD = std::get<2>(listNeihgbours.front());
+                path.push_back({ locX, locY, locD });
             }
 
         }
@@ -412,8 +455,8 @@ private:
         final_path = path;
         int p_x, p_y;
         for (auto &a : path){
-            p_x = a.first;
-            p_y = a.second;
+            p_x = get<0>(a);
+            p_y = get<1>(a);
             std::cout << "X" << p_x << " Y " << p_y << "\n";
             P[p_x][p_y] = 0;
         }
@@ -493,6 +536,7 @@ public:
 
         this->n.getParam("/startX", startX);
         this->n.getParam("/startY", startY);
+        this->n.getParam("/startd", startd);
         this->n.getParam("/endX", endX);
         this->n.getParam("/endY", endY);
         this->n.getParam("/K_psi", K_psi);
