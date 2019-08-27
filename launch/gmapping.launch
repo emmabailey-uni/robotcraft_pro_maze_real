@@ -1,7 +1,7 @@
 <launch>
 
 	<node pkg="gmapping" type="slam_gmapping" name="gmapping_group9">
-	<remap from="/scan" to="/base_scan_0"/>
+	<!-- <remap from="/scan" to="/base_scan_0"/> -->
 
 	<param name="delta" type="double" value="0.15" />
 	<param name="xmin" type="double" value="-3.0"/>

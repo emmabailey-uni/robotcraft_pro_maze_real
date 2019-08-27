@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(robotcraft_maze_pro)
+project(robotcraft_maze_pro_real)
 
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   #INCLUDE_DIRS include
-  LIBRARIES robotcraft_maze_pro
+  LIBRARIES robotcraft_maze_pro_real
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy sensor_msgs std_msgs tf
   #DEPENDS system_lib
 )
