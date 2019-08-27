@@ -1,0 +1,40 @@
+<!-- maze.launch: launch stage with a maze_solver node -->
+
+<launch>
+	<!-- Run stage, gmapping and Rviz -->
+    <node pkg="stage_ros" type="stageros" name="stageros" args="$(find robotcraft_maze_pro)/world/robotcraft_maze.world" />
+    <!--<include file="$(find robotcraft_maze_pro)/launch/gmapping.launch"/>-->
+    <include file="$(find robotcraft2019_robot_description)/launch/display_robotcraft2019.launch"/>
+    <include file="$(find robotcraft_maze_pro)/launch/map_pgm.launch"/>
+
+    <!-- Run the nodes -->
+    <!-- <node pkg="robotcraft_maze_pro" type="robotcraft_maze_pro_reactive_nav" name="robotcraft_maze_pro_reactive_nav" output="screen"/> -->
+    <node pkg="robotcraft_maze_pro" type="robotcraft_maze_pro_path_following_nav" name="robotcraft_maze_pro_path_following_nav" output="screen"/>
+    <node pkg="robotcraft_maze_pro" type="robotcraft_maze_pro_driver" name="robotcraft_maze_pro_driver" output="screen"/>
+
+
+
+
+    <!-- Set desired wall to choose which side to follow: 1.0 is right wall, 0.0 is left wall -->
+    <param name="desired_wall" type="double" value="0.0" />
+    <param name="desired_linear_velocity" type="double" value="0.075" />
+  	<param name="desired_side_wall_distance" type="double" value="0.41" />
+	<param name="front_obstacle_distance_threshold" type="double" value="0.3" />
+	<param name="k_p" type="double" value="0.5" />
+	<param name="k_i" type="double" value="0.1" />
+
+	<param name="startX" type="int" value="1" />
+	<param name="startY" type="int" value="1" />
+	<param name="endX" type="int" value="12" />
+	<param name="endY" type="int" value="3" />
+
+	<param name="K_psi" type="double" value="1.0" />
+  	<param name="K_omega" type="double" value="1" />
+	<param name="p" type="double" value="1" />
+	<param name="desired_ang_vel" type="double" value="0.1" />
+	<param name="correction_factor" type="double" value="0.85" />
+
+    <param name="x_offset" type="double" value="0.2" />
+    <param name="y_offset" type="double" value="5.075" />
+
+</launch>  

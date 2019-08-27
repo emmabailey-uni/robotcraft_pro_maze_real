@@ -1,0 +1,17 @@
+<launch>
+
+	<node pkg="robotcraft_maze" type="robotcraft_maze_driver" name="robotcraft_maze_driver" output="screen"/>
+	
+	<arg name="map_file" default="$(find robotcraft_maze)/world/gen_map.yaml"/>
+
+  	<!-- Run the map server -->
+  	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+
+
+  	<param name="startX" type="int" value="2" />
+	<param name="startY" type="int" value="2" />
+	<param name="endX" type="int" value="35" />
+	<param name="endY" type="int" value="9" />
+
+</launch>

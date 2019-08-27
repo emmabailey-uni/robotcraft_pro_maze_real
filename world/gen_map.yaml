@@ -1,0 +1,7 @@
+image: gen_map.pgm
+resolution: 0.450000
+origin: [-3.200000, -6.000000, 0.000000]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
