@@ -26,7 +26,7 @@
 
     <param name="startX" type="int" value="1" />
     <param name="startY" type="int" value="1" />
-    <param name="startd" type="int" value="0" />
+    <param name="startD" type="int" value="0" />
     <param name="endX" type="int" value="12" />
     <param name="endY" type="int" value="3" />
 

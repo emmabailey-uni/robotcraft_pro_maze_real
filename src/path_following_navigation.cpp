@@ -33,6 +33,58 @@
 class PathFollowingController
 {
 private:
+
+    //Making sort functions
+    void new_sort(std::vector<std::tuple<int,int, int>> &path_finder, std::vector<std::tuple<int,int,int>> &list_neighbours, bool sort_flag){
+        std::vector<std::tuple<int,int, int>> check;
+        int i, j=0, k;
+        int array_d[length(path_finder)];
+
+        for (i=0; i<length(path_finder); i++){
+          array_d[i] = get<2>(path_finder[i]);
+        }
+
+        for(i=0; i<4; i++){
+          if (max_element(array_d[i].begin(), array_d[i].end()) == (get<2>(list_neighbours[i]))++){
+            check[j] = (list_neighbours[i]);
+            j++;
+          }
+        }
+
+        int x_co, y_co, x_co_prev, y_co_prev;
+        x_co = get<0>(path_finder.end());
+        y_co = get<1>(path_finder.end());
+        x_co_prev = get<0>(path_finder.end()[-2]);
+        y_co_prev = get<1>(path_finder.end()[-2]);
+
+        for (k=0; k<j; k++){
+
+          if(x_co == x_co_prev && x_co == get<0>(check[k]) && y_co = y_co_prev +1 ){
+                  list_neighbours[0] = check[k];
+                  break;
+          }
+
+          if(x_co == x_co_prev && x_co == get<0>(check[k]) && y_co = y_co_prev -1 ){
+                  list_neighbours[0] = check[k];
+                  break;
+          }
+
+          if(y_co == y_co_prev && y_co == get<0>(check[k]) && x_co = x_co_prev -1 ){
+                  list_neighbours[0] = check[k];
+                  break;
+          }
+
+          if(y_co == y_co_prev && y_co == get<0>(check[k]) && x_co = x_co_prev +1 ){
+                  list_neighbours[0] = check[k];
+                  break;
+          }
+
+          else{
+            sort_flag = true;
+          }
+        }
+    }
+
     ros::NodeHandle n;
 
     //Publisher topics
@@ -51,7 +103,7 @@ private:
     int endX, endY;
 
     //Start position of robot - set from launch
-    int startX, startY;
+    int startX, startY, startD;
 
     float x, y, theta;
 
@@ -84,10 +136,10 @@ private:
 
     //Combines two values in a list - inextricably tied to each other in each list position, variable name is final_path
     //Final optimal path
-     std::list<std::pair<int,int>> final_path;
+     std::vector<std::tuple<int,int, int>> final_path;
 
      //Path we're currently running on to determine optimal
-     std::pair<int,int> my_p;
+     std::tuple<int,int> my_p;
 
 
     bool init_flag = false;
@@ -115,7 +167,7 @@ private:
           init_flag = true;
           ControllerState = ROTATE;
           my_p = final_path.front();
-          final_path.pop_front();
+          final_path.erase(final_path.begin());
           //std::cout << "FIRST GOAL" << (final_path.front()).first << "\n";
         }
 
@@ -127,9 +179,9 @@ private:
             }else{
                 //This part determines the instructions to send to driver
                 my_p = final_path.front();
-                final_path.pop_front();
-                x_goal = Width*cell_size-(Width-(my_p.second))*cell_size+cell_size/2;
-                y_goal = Height*cell_size-(my_p.first)*cell_size-cell_size/2;
+                final_path.erase(final_path.begin());
+                x_goal = Width*cell_size-(Width-(get<1>(my_p)))*cell_size+cell_size/2;
+                y_goal = Height*cell_size-(get<0>(my_p))*cell_size-cell_size/2;
             }
             done_flag = false;
         }
@@ -251,14 +303,14 @@ private:
 
 
         //New paired listing of three values for x, y and distance
-        std::list<std::tuple<int,int,int>> nodes;
+        std::vector<std::tuple<int,int,int>> nodes;
 
         //Exit of the map pushed to the list first
         nodes.push_back({endX,endY,1});
 
         while(!nodes.empty()){
             //New paired listing of three values for x, y and distance
-            std::list<std::tuple<int,int,int>> new_nodes;
+            std::vector<std::tuple<int,int,int>> new_nodes;
 
             for(auto &n : nodes){
                 //This is the method to access the variable held in our tuple list
@@ -347,15 +399,16 @@ private:
 
         //Algorithm to move through the cost map - choosing optimal path
         //Pushing new x-y coord each time you move
-        std::list<std::pair<int,int>> path;
-        path.push_back({startX,startY});
+        std::vector<std::tuple<int,int, int>> path;
+        path.push_back({startX,startY, startD});
         //locx anf locy keep track of current location
         int locX = startX;
         int locY = startY;
+        int locD = startD;
         bool no_path = false;
 
         while(!(locX == endX && locY == endY) && !no_path){
-            std::list<std::tuple<int,int,int>> listNeighbours;
+            std::vector<std::tuple<int,int,int>> listNeighbours;
 
             //This is the bit we want to optimise - we think
             // Check south
@@ -392,11 +445,21 @@ private:
                 listNeighbours.push_back({locX-1,locY-1,C[locX-1][locY-1]});
             }
 			*/
+            bool sort_flag = true;
 
-            listNeighbours.sort([&](const std::tuple<int, int, int> &n1, const std::tuple<int, int, int> &n2)
-            {
-                return std::get<2>(n1) < std::get<2>(n2); // Compare distances
-            });
+            if(static_flag){
+              new_sort(&path, &listNeighbours, sort_flag);
+            }
+
+            else{
+              listNeighbours.sort([&](const std::tuple<int, int, int> &n1, const std::tuple<int, int, int> &n2)
+              {
+                  return std::get<2>(n1) < std::get<2>(n2); // Compare distances
+              });
+              sort_flag = false;
+
+            }
+
 
             if (listNeighbours.empty()) // Neighbour is invalid or no possible path
                 no_path = true;
@@ -404,7 +467,8 @@ private:
             {
                 locX = std::get<0>(listNeighbours.front());
                 locY = std::get<1>(listNeighbours.front());
-                path.push_back({ locX, locY });
+                locD = std::get<2>(listNeihgbours.front());
+                path.push_back({ locX, locY, locD });
             }
 
         }
@@ -412,8 +476,8 @@ private:
         final_path = path;
         int p_x, p_y;
         for (auto &a : path){
-            p_x = a.first;
-            p_y = a.second;
+            p_x = get<0>(a);
+            p_y = get<1>(a);
             std::cout << "X" << p_x << " Y " << p_y << "\n";
             P[p_x][p_y] = 0;
         }
@@ -441,6 +505,7 @@ private:
         path_set = true;
 
         /*
+
         nav_msgs::OccupancyGrid* newGrid = map.Grid();
         newGrid->header = header;
         newGrid->info = info;
@@ -492,6 +557,7 @@ public:
 
         this->n.getParam("/startX", startX);
         this->n.getParam("/startY", startY);
+        this->n.getParam("/startD", startD);
         this->n.getParam("/endX", endX);
         this->n.getParam("/endY", endY);
         this->n.getParam("/K_psi", K_psi);
