@@ -1,0 +1,13 @@
+<launch>
+
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+
+					<!-- they should be the same value that in maze.launch file -->
+          <param name="initial_pose_x" value="0.25"/>
+          <param name="initial_pose_y" value="2.1"/>
+          <param name="initial_pose_theta" value="0"/>
+      </node>
+
+			<!-- Error for covariance matrix -->
+			<param name="covariance" type="double" value="0.0" />
+</launch>

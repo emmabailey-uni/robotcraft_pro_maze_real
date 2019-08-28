@@ -60,13 +60,14 @@ private:
     ros::Publisher ir_front_sensor;
     ros::Publisher ir_left_sensor;
     ros::Publisher ir_right_sensor;
+    ros::Publisher initial_pose_pub;
 
     //Subscriber Topics
     ros::Subscriber left_dist_sub;
     ros::Subscriber right_dist_sub;
     ros::Subscriber front_dist_sub;
     ros::Subscriber pose_sub;
-    ros::Subscriber reactive_vel_sub;
+    ros::Subscriber path_following_vel_sub;
 
     geometry_msgs::Twist calculateCommand(){
         auto msg = geometry_msgs::Twist();
@@ -109,6 +110,15 @@ private:
         odom.twist.twist.linear.x = v;
         odom.twist.twist.linear.y = 0.0;
         odom.twist.twist.angular.z = w;
+
+        //crate our covariance Matrix6x6
+        float covariance[6][6];
+        for (int i = 0;i<6;i++){
+          for(int j=0;j<6;j==){
+            covariance[i][j]=0.0;
+          }
+        }
+        odom.pose.covaariance=covariance;
 
         //publish the message
         odom_pub.publish(odom);
@@ -178,7 +188,7 @@ private:
     }
 
 
-    void reactiveVelCallback(const geometry_msgs::Twist& vel_msg){
+    void pathfollowingVelCallback(const geometry_msgs::Twist& vel_msg){
         // Update globally stored velocities for further use/publishing
         v=vel_msg.linear.x;
         w=vel_msg.angular.z;
@@ -209,6 +219,25 @@ private:
     return rgb_MSG;
     }
 
+    nav_msgs::PoseWithCovarianceStamped initPose(){
+        auto pose_cov_MSG = nav_msgs::PoseWithCovarianceStamped();
+        // Set position to zero
+        pose_cov_MSG.pose.pose.position.x = initial_pose_x;
+        pose_cov_MSG.pose.pose.positiony = initial_pose_y;
+        pose_cov_MSG.pose.pose.position.theta = initial_pose_theta;
+
+        float covariance[6][6];
+        for (int i = 0;i<6;i++){
+          for(int j=0;j<6;j==){
+            covariance[i][j]=0.0;
+          }
+        }
+        odom.pose.covaariance=covariance;
+
+        return pose_cov_MSG;
+
+
+    }
 
 public:
   //constructor
@@ -220,11 +249,16 @@ public:
         this->n.getParam("/initial_y", initial_y);
         this->n.getParam("/initial_theta", initial_theta);
 
+        this->n.getParam("/initial_x", initial_pose_x);
+        this->n.getParam("/initial_y", initial_pose_y);
+        this->n.getParam("/initial_theta", initial_pose_theta);
+
         // Create a publisher object, able to push messages
         this->cmd_vel_pub = this->n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
         this->set_pose_pub = this->n.advertise<geometry_msgs::Pose2D>("set_pose", 10);
+        this->init_pose_pub = this->n.advertise<nav_msgs::PoseWithCovarianceStamped>("initialpose", 10);
         // Create a subscriber for laser scans
-        this->reactive_vel_sub = n.subscribe("reactive_vel", 10, &RobotDriver::reactiveVelCallback, this);
+        this->path_following_vel_sub = n.subscribe("path_following_vel", 10, &RobotDriver::pathfollowingVelCallback, this);
         this->pose_sub = n.subscribe("pose", 10, &RobotDriver::poseCallback, this);
         this->left_dist_sub = n.subscribe("left_distance", 10, &RobotDriver::leftCallback, this);
         this->right_dist_sub = n.subscribe("right_distance", 10, &RobotDriver::rightCallback, this);
@@ -248,10 +282,12 @@ public:
             auto msg = calculateCommand();
             auto rgb_MSG = setLEDs();
             auto pose_MSG = setPose();
+            auto pose_cov_MSG = initPose();
 
             // Publish the new command
             this->cmd_vel_pub.publish(vel_MSG);
             this->set_pose_pub.publish(pose_MSG);
+            this->init_pose_pub.publish(pose_cov_MSG);
 
 
             ros::spinOnce();

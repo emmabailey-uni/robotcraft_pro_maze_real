@@ -7,6 +7,7 @@
     <include file="$(find robotcraft_maze_pro_real)/launch/gmapping.launch"/>
     <include file="$(find robotcraft_maze_pro_real)/launch/robot_firmware.launch"/>
     <include file="$(find robotcraft_maze_pro_real)/launch/driver.launch"/>
+    <include file="$(find robotcraft_maze_pro_real)/launch/amcl.launch"/>
 
     <!-- Launch the navigation node -->
     <!-- <node pkg="robotcraft_maze_pro_real" type="robotcraft_maze_pro_real_reactive_nav" name="robotcraft_maze_pro_real_reactive_nav" output="screen"/> -->
@@ -44,5 +45,6 @@
     <param name="initial_y" type="double" value="2.1" />
     <!-- Theta original in pos x direction -->
     <param name="initial_theta" type="double" value="0.0" />
+
 
 </launch>
